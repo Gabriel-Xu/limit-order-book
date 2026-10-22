@@ -28,15 +28,16 @@
 // Trades are appended to the caller-owned `out` vector so the hot path never
 // has to allocate a fresh container.
 template <typename B>
-concept OrderBook = requires(B b, const B cb, OrderId id, Side side,
-                             Price price, Quantity qty, std::vector<Trade>& out) {
-    { b.add_limit(id, side, price, qty, out) } -> std::same_as<bool>;
-    { b.add_market(id, side, qty, out) }       -> std::same_as<void>;
-    { b.cancel(id) }                           -> std::same_as<bool>;
-    { b.modify(id, price, qty, out) }          -> std::same_as<bool>;
+concept OrderBook =
+    requires(B b, const B cb, OrderId id, Side side, Price price, Quantity qty,
+             std::vector<Trade> &out) {
+      { b.add_limit(id, side, price, qty, out) } -> std::same_as<bool>;
+      { b.add_market(id, side, qty, out) } -> std::same_as<void>;
+      { b.cancel(id) } -> std::same_as<bool>;
+      { b.modify(id, price, qty, out) } -> std::same_as<bool>;
 
-    { cb.best_bid() }               -> std::same_as<std::optional<Price>>;
-    { cb.best_ask() }               -> std::same_as<std::optional<Price>>;
-    { cb.volume_at(side, price) }   -> std::same_as<Quantity>;
-    { cb.order_count() }            -> std::same_as<std::size_t>;
-};
+      { cb.best_bid() } -> std::same_as<std::optional<Price>>;
+      { cb.best_ask() } -> std::same_as<std::optional<Price>>;
+      { cb.volume_at(side, price) } -> std::same_as<Quantity>;
+      { cb.order_count() } -> std::same_as<std::size_t>;
+    };
