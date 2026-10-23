@@ -99,7 +99,9 @@ public:
                              : level_volume(asks_, price);
   }
 
-  std::size_t order_count() const { return index_.size(); }
+  std::size_t order_count() const {
+    return index_.size();
+  }
 
 private:
   struct Order {
@@ -133,7 +135,7 @@ private:
       while (qty > 0 && !queue.empty()) {
         Order &resting = queue.front();
         const Quantity fill = std::min(qty, resting.qty);
-        out.push_back({aggressor, resting.id, level_price, fill});
+        out.push_back(Trade{aggressor, resting.id, level_price, fill});
         qty -= fill;
         resting.qty -= fill;
         if (resting.qty == 0) {
@@ -154,7 +156,7 @@ private:
   template <typename Levels>
   void rest(Levels &levels, OrderId id, Side side, Price price, Quantity qty) {
     Level &queue = levels[price];
-    queue.push_back({id, qty});
+    queue.push_back(Order{id, qty});
     index_.emplace(id, Locator{side, price, std::prev(queue.end())});
   }
 
