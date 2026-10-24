@@ -1,0 +1,26 @@
+#pragma once
+
+#include <gtest/gtest.h>
+
+#include <ostream>
+
+#include "map_order_book.hpp"
+#include "naive_order_book.hpp"
+#include "types.hpp"
+
+// Every implementation runs the unit tests, including the naive oracle so the
+// reference itself is checked. Add each new book to both lists.
+using AllBooks = ::testing::Types<NaiveOrderBook, MapOrderBook>;
+
+// Books differentially tested against NaiveOrderBook.
+using BooksUnderTest = ::testing::Types<MapOrderBook>;
+
+// Printers so GoogleTest failure messages show readable values.
+inline std::ostream &operator<<(std::ostream &os, Side side) {
+  return os << (side == Side::Buy ? "Buy" : "Sell");
+}
+
+inline std::ostream &operator<<(std::ostream &os, const Trade &t) {
+  return os << "{aggressor " << t.aggressor << ", resting " << t.resting
+            << ", price " << t.price << ", qty " << t.qty << "}";
+}
