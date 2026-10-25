@@ -17,6 +17,7 @@
 #include <x86intrin.h>
 #endif
 
+#include "pool_order_book.hpp"
 #include "map_order_book.hpp"
 #include "workload.hpp"
 
@@ -292,5 +293,6 @@ int main(int argc, char **argv) {
               static_cast<double>(timer_overhead_ticks()) / ticks_per_ns);
 
   run_book<MapOrderBook>("MapOrderBook", w, opt.reps, ticks_per_ns);
+  run_book<PoolOrderBook>("PoolOrderBook", w, opt.reps, ticks_per_ns);
   return 0;
 }

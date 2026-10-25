@@ -4,16 +4,17 @@
 
 #include <ostream>
 
+#include "pool_order_book.hpp"
 #include "map_order_book.hpp"
 #include "naive_order_book.hpp"
 #include "types.hpp"
 
 // Every implementation runs the unit tests, including the naive oracle so the
 // reference itself is checked. Add each new book to both lists.
-using AllBooks = ::testing::Types<NaiveOrderBook, MapOrderBook>;
+using AllBooks = ::testing::Types<NaiveOrderBook, MapOrderBook, PoolOrderBook>;
 
 // Books differentially tested against NaiveOrderBook.
-using BooksUnderTest = ::testing::Types<MapOrderBook>;
+using BooksUnderTest = ::testing::Types<MapOrderBook, PoolOrderBook>;
 
 // Printers so GoogleTest failure messages show readable values.
 inline std::ostream &operator<<(std::ostream &os, Side side) {
