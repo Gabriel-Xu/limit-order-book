@@ -23,6 +23,14 @@ taskset -c 2 ./build/release/lob_bench [--events N] [--depth N] [--seed N] [--re
 
 The `profile` preset builds optimized code with debug info for `perf record`.
 
+On Linux the benchmark also prints hardware counters per event (cycles, IPC,
+branch misses, L1d read misses, and the kernel's generic `cache-misses`, which
+is LLC misses on Intel and roughly L2 misses on AMD Zen). They come from an
+extra untimed replay with counters enabled only around the measured events,
+so the throughput and latency numbers are unaffected. They need
+`perf_event_paranoid` <= 2 (the default) and a PMU the kernel can see; inside a
+VM without one, the bench says so and skips them.
+
 ## Layout
 
 | Path | Contents |
@@ -30,11 +38,13 @@ The `profile` preset builds optimized code with debug info for `perf record`.
 | `types.hpp` | Shared types: `OrderId`, `Price` (integer ticks), `Quantity`, `Side`, `Trade` |
 | `order_book.hpp` | The `OrderBook` concept and the matching rules every implementation follows |
 | `map_order_book.hpp` | Baseline: `std::map` of price levels, `std::list` FIFO queues, hash-map order index |
+| `pool_order_book.hpp` | Improved implementation with pooling and intrusive doubly linked lists |
 | `tests/naive_order_book.hpp` | Linear-scan reference book used as the test oracle |
 | `tests/order_book_test.cpp` | Unit tests, run against every implementation |
 | `tests/differential_test.cpp` | Random operations compared step by step against the reference book |
 | `bench/workload.hpp` | Deterministic synthetic order flow generator |
-| `bench/bench.cpp` | Throughput and per-operation latency percentiles |
+| `bench/bench.cpp` | Throughput, per-operation latency percentiles, and hardware counters |
+| `bench/perf_counters.hpp` | `perf_event_open` wrapper for cycle, branch-miss and cache-miss counts |
 
 ## Adding an implementation
 

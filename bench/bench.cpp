@@ -3,6 +3,9 @@
 //
 // For stable numbers: build the release preset, pin to one core
 // (taskset -c 2 ./lob_bench), and close other heavy programs.
+//
+// Hardware counters (branch and cache misses) come from a separate untimed
+// pass, so they never perturb the throughput or latency numbers.
 
 #include <algorithm>
 #include <array>
@@ -17,8 +20,9 @@
 #include <x86intrin.h>
 #endif
 
-#include "pool_order_book.hpp"
 #include "map_order_book.hpp"
+#include "perf_counters.hpp"
+#include "pool_order_book.hpp"
 #include "workload.hpp"
 
 namespace {
@@ -134,6 +138,26 @@ template <OrderBook B> double throughput_run(const Workload &w, Checksum &sum) {
          static_cast<double>(w.events.size() - w.warmup);
 }
 
+// Same replay as throughput_run, but with hardware counters enabled around
+// the measured events instead of the clock. Kept as its own pass so the
+// timed runs are byte-for-byte what they were without counters.
+template <OrderBook B>
+CounterValues counter_run(const Workload &w, PerfCounters &counters,
+                          Checksum &sum) {
+  B book;
+  std::vector<Trade> trades;
+  trades.reserve(1024);
+  replay_warmup(book, w, trades);
+
+  counters.start();
+  for (std::size_t i = w.warmup; i < w.events.size(); ++i) {
+    trades.clear();
+    apply(book, w.events[i], trades);
+    sum.add(trades);
+  }
+  return counters.stop();
+}
+
 using Samples = std::array<std::vector<std::uint64_t>, kEventTypes>;
 
 // Times each event individually, bucketed by event type.
@@ -183,9 +207,31 @@ void print_latency_row(const char *name, std::vector<std::uint64_t> &ticks,
               static_cast<double>(ticks.back()) / ticks_per_ns);
 }
 
+void print_counters(const CounterValues &c, double events) {
+  std::printf("  counters (per event):");
+  if (c.has(Counter::Cycles))
+    std::printf(" %.1f cycles", c[Counter::Cycles] / events);
+  if (c.has(Counter::Cycles) && c.has(Counter::Instructions))
+    std::printf(", %.2f IPC", c[Counter::Instructions] / c[Counter::Cycles]);
+  if (c.has(Counter::BranchMisses)) {
+    std::printf(", %.3f branch-misses", c[Counter::BranchMisses] / events);
+    if (c.has(Counter::Branches))
+      std::printf(" (%.2f%%)",
+                  100.0 * c[Counter::BranchMisses] / c[Counter::Branches]);
+  }
+  if (c.has(Counter::L1dMisses))
+    std::printf(", %.3f L1d-misses", c[Counter::L1dMisses] / events);
+  if (c.has(Counter::CacheMisses))
+    std::printf(", %.3f cache-misses", c[Counter::CacheMisses] / events);
+  if (c.multiplexed < 1.0)
+    std::printf("  (multiplexed, %.0f%% live: estimates)",
+                100.0 * c.multiplexed);
+  std::printf("\n");
+}
+
 template <OrderBook B>
 void run_book(const char *name, const Workload &w, int reps,
-              double ticks_per_ns) {
+              double ticks_per_ns, PerfCounters &counters) {
   std::vector<double> ns_per_op;
   Checksum sum;
   for (int r = 0; r < reps; ++r) {
@@ -199,6 +245,11 @@ void run_book(const char *name, const Workload &w, int reps,
   std::size_t final_depth = 0;
   Samples samples = latency_run<B>(w, latency_sum, final_depth);
 
+  Checksum counter_sum;
+  CounterValues counter_values;
+  if (counters.available())
+    counter_values = counter_run<B>(w, counters, counter_sum);
+
   std::printf("\n%s\n", name);
   std::printf("  throughput: %.2f M events/s (%.1f ns/event, median of %d; "
               "min %.1f, max %.1f)\n",
@@ -211,12 +262,18 @@ void run_book(const char *name, const Workload &w, int reps,
   for (std::size_t t = 0; t < kEventTypes; ++t)
     print_latency_row(kTypeNames[t], samples[t], ticks_per_ns);
   print_latency_row("all", all, ticks_per_ns);
+  if (counters.available())
+    print_counters(counter_values,
+                   static_cast<double>(w.events.size() - w.warmup));
   std::printf("  final depth: %zu orders\n", final_depth);
   std::printf("  checksum: %llu trades, %llu volume, hash %016llx%s\n",
               static_cast<unsigned long long>(sum.trades),
               static_cast<unsigned long long>(sum.volume),
               static_cast<unsigned long long>(sum.hash),
-              latency_sum.hash == sum.hash ? "" : "  (MISMATCH between runs!)");
+              latency_sum.hash == sum.hash &&
+                      (!counters.available() || counter_sum.hash == sum.hash)
+                  ? ""
+                  : "  (MISMATCH between runs!)");
 }
 
 // --- Main --------------------------------------------------------------------
@@ -292,7 +349,13 @@ int main(int argc, char **argv) {
               ticks_per_ns,
               static_cast<double>(timer_overhead_ticks()) / ticks_per_ns);
 
-  run_book<MapOrderBook>("MapOrderBook", w, opt.reps, ticks_per_ns);
-  run_book<PoolOrderBook>("PoolOrderBook", w, opt.reps, ticks_per_ns);
+  PerfCounters counters;
+  if (!counters.available())
+    std::printf("counters: unavailable (no PMU access; check "
+                "/proc/sys/kernel/perf_event_paranoid)\n");
+
+  run_book<MapOrderBook>("MapOrderBook", w, opt.reps, ticks_per_ns, counters);
+  run_book<PoolOrderBook>("PoolOrderBook", w, opt.reps, ticks_per_ns,
+                          counters);
   return 0;
 }
