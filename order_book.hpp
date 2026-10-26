@@ -1,11 +1,11 @@
 #pragma once
 
+#include "types.hpp"
+
 #include <concepts>
 #include <cstddef>
 #include <optional>
 #include <vector>
-
-#include "types.hpp"
 
 // Interface every order book implementation must satisfy.
 //

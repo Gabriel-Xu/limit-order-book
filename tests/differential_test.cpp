@@ -1,10 +1,10 @@
-#include <gtest/gtest.h>
+#include "test_support.hpp"
 
 #include <cstdint>
 #include <random>
 #include <vector>
 
-#include "test_support.hpp"
+#include <gtest/gtest.h>
 
 namespace {
 
@@ -18,7 +18,8 @@ constexpr Quantity kMaxQty = 20;
 constexpr std::uint64_t kSeeds = 50;
 constexpr int kOpsPerSeed = 10'000;
 
-template <typename B> class DifferentialTest : public ::testing::Test {};
+template <typename B>
+class DifferentialTest : public ::testing::Test {};
 TYPED_TEST_SUITE(DifferentialTest, BooksUnderTest);
 
 // Compares every observable piece of state. Queue order isn't directly

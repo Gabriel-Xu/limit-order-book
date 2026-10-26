@@ -39,6 +39,7 @@ VM without one, the bench says so and skips them.
 | `order_book.hpp` | The `OrderBook` concept and the matching rules every implementation follows |
 | `map_order_book.hpp` | Baseline: `std::map` of price levels, `std::list` FIFO queues, hash-map order index |
 | `pool_order_book.hpp` | Improved implementation with pooling and intrusive doubly linked lists |
+| `flat_order_book.hpp` | Implementation now uses flat data structures (`std::vector`) over maps |
 | `tests/naive_order_book.hpp` | Linear-scan reference book used as the test oracle |
 | `tests/order_book_test.cpp` | Unit tests, run against every implementation |
 | `tests/differential_test.cpp` | Random operations compared step by step against the reference book |

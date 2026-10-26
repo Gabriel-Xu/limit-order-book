@@ -137,8 +137,7 @@ private:
     attr.exclude_hv = 1;
     attr.read_format =
         PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
-    return static_cast<int>(
-        syscall(SYS_perf_event_open, &attr, 0, -1, -1, 0));
+    return static_cast<int>(syscall(SYS_perf_event_open, &attr, 0, -1, -1, 0));
   }
 
   std::array<int, kCounters> fds_{};

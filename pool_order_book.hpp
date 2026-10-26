@@ -1,5 +1,8 @@
 #pragma once
 
+#include "order_book.hpp"
+#include "types.hpp"
+
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -8,9 +11,6 @@
 #include <optional>
 #include <unordered_map>
 #include <vector>
-
-#include "order_book.hpp"
-#include "types.hpp"
 
 // Improved implementation of the baseline that pre-allocates a pool of orders
 // to avoid heap allocations on every insert. This also improves cache locality
@@ -25,7 +25,6 @@ class PoolOrderBook {
 public:
   explicit PoolOrderBook(std::size_t capacity = 1024) {
     pool_.reserve(capacity);
-    index_.reserve(capacity);
   }
 
   bool add_limit(OrderId id, Side side, Price price, Quantity qty,
@@ -107,28 +106,24 @@ public:
                              : level_volume(asks_, price);
   }
 
-  std::size_t order_count() const {
-    return index_.size();
-  }
+  std::size_t order_count() const { return index_.size(); }
 
 private:
   using PoolIndex = std::uint32_t;
-  static constexpr PoolIndex kNull = UINT32_MAX;
+  static constexpr PoolIndex k_null = UINT32_MAX;
 
   struct Order {
     OrderId id;
-    Quantity qty;  // remaining
+    Quantity qty;   // remaining
     PoolIndex next; // next in level while resting, next free slot otherwise
     PoolIndex prev;
   };
 
   struct Level {
-    PoolIndex head = kNull;
-    PoolIndex tail = kNull;
+    PoolIndex head = k_null;
+    PoolIndex tail = k_null;
 
-    bool empty() const {
-      return head == kNull;
-    }
+    bool empty() const { return head == k_null; }
   };
 
   using BidLevels = std::map<Price, Level, std::greater<Price>>;
@@ -197,13 +192,13 @@ private:
   // Growth may reallocate `pool_`, so no Order& may be held across this call.
   PoolIndex allocate(OrderId id, Quantity qty) {
     PoolIndex i = free_head_;
-    if (i == kNull) {
+    if (i == k_null) {
       i = static_cast<PoolIndex>(pool_.size());
       pool_.emplace_back();
     } else {
       free_head_ = pool_[i].next;
     }
-    pool_[i] = Order{id, qty, kNull, kNull};
+    pool_[i] = Order{id, qty, k_null, k_null};
     return i;
   }
 
@@ -223,11 +218,11 @@ private:
 
   void unlink(Level &queue, PoolIndex i) {
     const Order &order = pool_[i];
-    if (order.prev != kNull)
+    if (order.prev != k_null)
       pool_[order.prev].next = order.next;
     else
       queue.head = order.next;
-    if (order.next != kNull)
+    if (order.next != k_null)
       pool_[order.next].prev = order.prev;
     else
       queue.tail = order.prev;
@@ -239,7 +234,7 @@ private:
     if (it == levels.end())
       return 0;
     Quantity total = 0;
-    for (PoolIndex i = it->second.head; i != kNull; i = pool_[i].next)
+    for (PoolIndex i = it->second.head; i != k_null; i = pool_[i].next)
       total += pool_[i].qty;
     return total;
   }
@@ -248,7 +243,7 @@ private:
   AskLevels asks_;
   std::unordered_map<OrderId, Locator> index_;
   std::vector<Order> pool_;
-  PoolIndex free_head_ = kNull;
+  PoolIndex free_head_ = k_null;
 };
 
 static_assert(OrderBook<PoolOrderBook>);

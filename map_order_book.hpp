@@ -1,5 +1,8 @@
 #pragma once
 
+#include "order_book.hpp"
+#include "types.hpp"
+
 #include <algorithm>
 #include <functional>
 #include <iterator>
@@ -8,9 +11,6 @@
 #include <optional>
 #include <unordered_map>
 #include <vector>
-
-#include "order_book.hpp"
-#include "types.hpp"
 
 // Baseline implementation built from standard containers.
 //
@@ -99,9 +99,7 @@ public:
                              : level_volume(asks_, price);
   }
 
-  std::size_t order_count() const {
-    return index_.size();
-  }
+  std::size_t order_count() const { return index_.size(); }
 
 private:
   struct Order {

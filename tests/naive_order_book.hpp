@@ -1,12 +1,12 @@
 #pragma once
 
+#include "order_book.hpp"
+#include "types.hpp"
+
 #include <algorithm>
 #include <cstdint>
 #include <optional>
 #include <vector>
-
-#include "order_book.hpp"
-#include "types.hpp"
 
 // Deliberately naive reference book used as a test oracle. Every order lives
 // in one flat vector and every operation is a linear scan, so it is far too

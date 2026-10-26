@@ -1,8 +1,8 @@
-#include <gtest/gtest.h>
+#include "test_support.hpp"
 
 #include <vector>
 
-#include "test_support.hpp"
+#include <gtest/gtest.h>
 
 namespace {
 
@@ -10,7 +10,8 @@ using Trades = std::vector<Trade>;
 
 // Each helper clears `trades` first, so after a call it holds only the fills
 // from that one operation.
-template <typename B> class OrderBookTest : public ::testing::Test {
+template <typename B>
+class OrderBookTest : public ::testing::Test {
 protected:
   bool limit(OrderId id, Side side, Price price, Quantity qty) {
     trades.clear();

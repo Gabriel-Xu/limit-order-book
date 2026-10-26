@@ -7,6 +7,12 @@
 // Hardware counters (branch and cache misses) come from a separate untimed
 // pass, so they never perturb the throughput or latency numbers.
 
+#include "flat_order_book.hpp"
+#include "map_order_book.hpp"
+#include "perf_counters.hpp"
+#include "pool_order_book.hpp"
+#include "workload.hpp"
+
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -19,11 +25,6 @@
 #if defined(__x86_64__)
 #include <x86intrin.h>
 #endif
-
-#include "map_order_book.hpp"
-#include "perf_counters.hpp"
-#include "pool_order_book.hpp"
-#include "workload.hpp"
 
 namespace {
 
@@ -119,7 +120,8 @@ void replay_warmup(B &book, const Workload &w, std::vector<Trade> &trades) {
 
 // Times the whole measured stream with no per-op timers, so timer overhead
 // doesn't inflate the result. Returns mean nanoseconds per event.
-template <OrderBook B> double throughput_run(const Workload &w, Checksum &sum) {
+template <OrderBook B>
+double throughput_run(const Workload &w, Checksum &sum) {
   B book;
   std::vector<Trade> trades;
   trades.reserve(1024);
@@ -355,7 +357,7 @@ int main(int argc, char **argv) {
                 "/proc/sys/kernel/perf_event_paranoid)\n");
 
   run_book<MapOrderBook>("MapOrderBook", w, opt.reps, ticks_per_ns, counters);
-  run_book<PoolOrderBook>("PoolOrderBook", w, opt.reps, ticks_per_ns,
-                          counters);
+  run_book<PoolOrderBook>("PoolOrderBook", w, opt.reps, ticks_per_ns, counters);
+  run_book<FlatOrderBook>("FlatOrderBook", w, opt.reps, ticks_per_ns, counters);
   return 0;
 }

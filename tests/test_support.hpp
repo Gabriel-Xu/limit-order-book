@@ -1,20 +1,23 @@
 #pragma once
 
-#include <gtest/gtest.h>
+#include "flat_order_book.hpp"
+#include "map_order_book.hpp"
+#include "naive_order_book.hpp"
+#include "pool_order_book.hpp"
+#include "types.hpp"
 
 #include <ostream>
 
-#include "pool_order_book.hpp"
-#include "map_order_book.hpp"
-#include "naive_order_book.hpp"
-#include "types.hpp"
+#include <gtest/gtest.h>
 
 // Every implementation runs the unit tests, including the naive oracle so the
 // reference itself is checked. Add each new book to both lists.
-using AllBooks = ::testing::Types<NaiveOrderBook, MapOrderBook, PoolOrderBook>;
+using AllBooks = ::testing::Types<NaiveOrderBook, MapOrderBook, PoolOrderBook,
+                                  FlatOrderBook>;
 
 // Books differentially tested against NaiveOrderBook.
-using BooksUnderTest = ::testing::Types<MapOrderBook, PoolOrderBook>;
+using BooksUnderTest =
+    ::testing::Types<MapOrderBook, PoolOrderBook, FlatOrderBook>;
 
 // Printers so GoogleTest failure messages show readable values.
 inline std::ostream &operator<<(std::ostream &os, Side side) {

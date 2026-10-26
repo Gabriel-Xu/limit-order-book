@@ -1,14 +1,14 @@
 #pragma once
 
+#include "map_order_book.hpp"
+#include "order_book.hpp"
+#include "types.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <random>
 #include <unordered_map>
 #include <vector>
-
-#include "map_order_book.hpp"
-#include "order_book.hpp"
-#include "types.hpp"
 
 // A pre-generated stream of order book events, replayed identically against
 // every implementation so their timings and outputs can be compared.
