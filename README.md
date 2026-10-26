@@ -40,8 +40,10 @@ VM without one, the bench says so and skips them.
 | `map_order_book.hpp` | Baseline: `std::map` of price levels, `std::list` FIFO queues, hash-map order index |
 | `pool_order_book.hpp` | Improved implementation with pooling and intrusive doubly linked lists |
 | `flat_order_book.hpp` | Implementation now uses flat data structures (`std::vector`) over maps |
+| `tuned_order_book.hpp` | Flat book plus a level bitmap, 16-byte orders, 8-byte index entries and huge pages |
 | `tests/naive_order_book.hpp` | Linear-scan reference book used as the test oracle |
 | `tests/order_book_test.cpp` | Unit tests, run against every implementation |
+| `tests/ladder_book_test.cpp` | Price-range, id-growth and sparse-book tests for the flat and tuned books |
 | `tests/differential_test.cpp` | Random operations compared step by step against the reference book |
 | `bench/workload.hpp` | Deterministic synthetic order flow generator |
 | `bench/bench.cpp` | Throughput, per-operation latency percentiles, and hardware counters |

@@ -48,7 +48,8 @@ if(LOB_BUILD_TESTS)
   enable_testing()
   add_executable(lob_tests
     tests/order_book_test.cpp
-    tests/differential_test.cpp)
+    tests/differential_test.cpp
+    tests/ladder_book_test.cpp)
   target_include_directories(lob_tests PRIVATE tests)
   target_link_libraries(lob_tests PRIVATE lob lob_options GTest::gtest_main)
   include(GoogleTest)

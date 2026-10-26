@@ -11,6 +11,7 @@
 #include "map_order_book.hpp"
 #include "perf_counters.hpp"
 #include "pool_order_book.hpp"
+#include "tuned_order_book.hpp"
 #include "workload.hpp"
 
 #include <algorithm>
@@ -359,5 +360,7 @@ int main(int argc, char **argv) {
   run_book<MapOrderBook>("MapOrderBook", w, opt.reps, ticks_per_ns, counters);
   run_book<PoolOrderBook>("PoolOrderBook", w, opt.reps, ticks_per_ns, counters);
   run_book<FlatOrderBook>("FlatOrderBook", w, opt.reps, ticks_per_ns, counters);
+  run_book<TunedOrderBook>("TunedOrderBook", w, opt.reps, ticks_per_ns,
+                           counters);
   return 0;
 }

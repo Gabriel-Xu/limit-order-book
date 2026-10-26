@@ -4,6 +4,7 @@
 #include "map_order_book.hpp"
 #include "naive_order_book.hpp"
 #include "pool_order_book.hpp"
+#include "tuned_order_book.hpp"
 #include "types.hpp"
 
 #include <ostream>
@@ -13,11 +14,15 @@
 // Every implementation runs the unit tests, including the naive oracle so the
 // reference itself is checked. Add each new book to both lists.
 using AllBooks = ::testing::Types<NaiveOrderBook, MapOrderBook, PoolOrderBook,
-                                  FlatOrderBook>;
+                                  FlatOrderBook, TunedOrderBook>;
 
 // Books differentially tested against NaiveOrderBook.
-using BooksUnderTest =
-    ::testing::Types<MapOrderBook, PoolOrderBook, FlatOrderBook>;
+using BooksUnderTest = ::testing::Types<MapOrderBook, PoolOrderBook,
+                                        FlatOrderBook, TunedOrderBook>;
+
+// Books with a fixed price range and an id-indexed order table, which get
+// extra tests for those constraints in ladder_book_test.cpp.
+using LadderBooks = ::testing::Types<FlatOrderBook, TunedOrderBook>;
 
 // Printers so GoogleTest failure messages show readable values.
 inline std::ostream &operator<<(std::ostream &os, Side side) {
